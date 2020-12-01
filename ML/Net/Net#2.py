@@ -14,6 +14,7 @@ test_images = test_images/255.0
 model = tf.keras.Sequential([
     tf.keras.layers.Flatten(input_shape=(28,28)),
     tf.keras.layers.Dense(128, activation='relu'),
+    tf.keras.layers.Dense(128, activation='relu'),
     tf.keras.layers.Dense(10)
 ])
 
@@ -29,7 +30,7 @@ print(test_acc)
 result = model.predict(test_images)
 result = model.predict(test_images)
 
-number = 4
+number = 5
 
 index = 0
 previousValue = 0

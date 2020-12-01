@@ -8,7 +8,7 @@ firebase = firebase.FirebaseApplication('https://experimentsdb.firebaseio.com',N
 
 random.seed(13)
 def equation(x, a):
-    y = x * x  *  x+ a * 2 + random.randint(-1,1)
+    y = 3 * x + a * 2 + random.randint(-1,1)
     return y
 
 
@@ -18,17 +18,14 @@ data['output'] = []
 
 
 
-for x in range(0,100):
+for x in range(100,150):
     data['xa'].append(x)
     a = random.randint(-8,8)
     data['ax'].append(a)
     data['output'].append(equation(x, a))
 
 df = pd.DataFrame(data, columns=['xa','ax', 'output'])
-compression_opts = dict(method='zip',
-                        archive_name='train.csv')
-df.to_csv('train.zip', index=False,
-          compression=compression_opts)
+df.to_csv('eval.csv', index=False)
 
 firebase.post("Linear/", data)
 
