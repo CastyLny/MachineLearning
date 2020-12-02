@@ -18,7 +18,7 @@ data['output'] = []
 
 
 
-for x in range(100,150):
+for x in range(0,150):
     data['xa'].append(x)
     a = random.randint(-8,8)
     data['ax'].append(a)
