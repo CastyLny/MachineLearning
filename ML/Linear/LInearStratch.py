@@ -1,11 +1,16 @@
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 import numpy as np
 import pandas as pd
+
+from matplotlib.animation import FFMpegFileWriter
+
+
 
 trainPD = pd.read_csv('train.csv')
 evalPD = pd.read_csv('eval.csv')
 
-def featureScaling(X):
+def featureScaling(X): #deal with numpy array
     for i, x in enumerate(X):
         X[i] = ((x - np.average(X))/np.ptp(X))
     return X
@@ -13,7 +18,7 @@ def featureScaling(X):
 def hypo(theta, x):
     return np.matmul(np.transpose(x), theta)
 
-def pdCost(X, y, theta, j, learningRate = 1):
+def pdCost(X, y, theta, j, learningRate = 8.5):
 
 
     total = 0
@@ -35,20 +40,23 @@ def xZero(X):
     return (X)
 
 def linearRegressor(trainDatabase):
-    repeat = 10000
+    repeat = 300
     y = np.array(trainDatabase.pop('output'))
 
 
 
     trainDatabase = xZero(trainDatabase)
     X = featureScaling(np.array(trainDatabase))
-    print('poo: ' + str(np.ptp(X)))
 
-    initialTheta = np.ones(shape = (len(trainDatabase.columns),))
+    initialTheta = np.zeros(shape = (len(trainDatabase.columns),))
     #find theta cost
     costs = []
 
     print(Cost([hypo(initialTheta,X[i]) for i in range(len(X))], y))
+
+    theta = []
+
+    untilIndex = 100
 
 
 
@@ -61,21 +69,18 @@ def linearRegressor(trainDatabase):
                 costs.append(cost)
 
         initialTheta = tempoTheta
+        plt.figure()
+        plt.ylim(0,330)
+        data = pd.DataFrame({'Prediction':[hypo(tempoTheta, X[b]) for b in range(untilIndex)], 'Result':y[:untilIndex]})
 
-    untilIndex = 100
-    Eval = pd.DataFrame({'Results': [hypo(initialTheta,X[i]) for i in range(untilIndex)], 'Evaluate':y[0:untilIndex]})
-
-    print(Cost([hypo(initialTheta,X[i]) for i in range(untilIndex)], y[0:untilIndex]))
-
-
-    print(Eval)
-
-
-    plt.figure()
-    plt.plot(Eval)
-    plt.show()
-
-
+        plt.plot(data['Prediction'], label='Prediction')
+        plt.plot(data['Result'], label='Result')
+        plt.legend()
+        plt.title(f'Generation: {i}')
+        plt.savefig(f'!frame{i}.png')
+        print(f'No.{i} frame rendered')
+        plt.close()
+        theta.append(initialTheta)
 
 
 
