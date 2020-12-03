@@ -44,10 +44,11 @@ def xZero(X):
     allOne[:,1:] = X
     return allOne
 
-def linearRegressor(trainDatabase):
+def linearRegressor(trainDatabase, predictionFeature, popFeature, Visualize = False):
     repeat = 1000
-    y = np.array(trainDatabase.pop('Octane'))
-
+    y = np.array(trainDatabase.pop(predictionFeature))
+    for feature in popFeature:
+        trainDatabase.pop(feature)
     X = featureScaling(np.array(trainDatabase))
     X = xZero(X)
     initialTheta = np.ones(shape = (X.shape[1],))
@@ -73,21 +74,23 @@ def linearRegressor(trainDatabase):
                 costs.append(cost)
 
         initialTheta = tempoTheta
-        plt.figure()
-        plt.ylim(0,np.max(y) + 30)
-        data = pd.DataFrame({'Prediction':[hypo(tempoTheta, X[b]) for b in range(untilIndex)], 'Result':y[:untilIndex]})
-        plt.scatter(range(untilIndex), data['Result'], label='Result')
-        plt.plot(data['Prediction'],'r' ,label='Prediction')
+        if Visualize:
+            plt.figure()
+            plt.ylim(0, np.max(y) + 30)
+            data = pd.DataFrame(
+                {'Prediction': [hypo(tempoTheta, X[b]) for b in range(untilIndex)], 'Result': y[:untilIndex]})
+            plt.scatter(range(untilIndex), data['Result'], label='Result')
+            plt.plot(data['Prediction'], 'r', label='Prediction')
 
-        plt.legend()
-        plt.title(f'Generation: {i}, Cost: {str(cost * 10000)}')
-        plt.savefig(f'!frame{i}.png')
-        print(f'No.{i} frame rendered')
-        plt.close()
-        theta.append(initialTheta)
+            plt.legend()
+            plt.title(f'Generation: {i}, Cost: {str(cost * 10000)}')
+            plt.savefig(f'!frame{i}.png')
+            print(f'No.{i} frame rendered')
+            plt.close()
+            theta.append(initialTheta)
 
     print(np.floor(costs[0]))
 
 
 
-linearRegressor(trainPD)
+linearRegressor(trainPD, 'Octane', ['Mat1Amt','Condition'])
