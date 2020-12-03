@@ -5,9 +5,14 @@ import pandas as pd
 
 from matplotlib.animation import FFMpegFileWriter
 
+'''
+Material 1 amount
+Material 2 amount
+Material 3 amount
+Condition
+Octane number'''
 
-
-trainPD = pd.read_csv('train.csv')
+trainPD = pd.read_csv('OctaneLevel.csv')
 evalPD = pd.read_csv('eval.csv')
 
 def featureScaling(X): #deal with numpy array
@@ -18,51 +23,50 @@ def featureScaling(X): #deal with numpy array
 def hypo(theta, x):
     return np.matmul(np.transpose(x), theta)
 
-def pdCost(X, y, theta, j, learningRate = 8.5):
-
+def pdCost(X, y, theta, j, learningRate = 2):
 
     total = 0
     for i in range(0, len(X)):
-        #print(f'x: {X[i]}, y: {y[i]}, theta: {theta}')
+
+
         total +=((hypo(theta, X[i]) - y[i]) * X[i][j])
     return (learningRate * (total / (len(X))))
 
 
 def Cost(X, y):
-    total = np.sum(X-y)
+    total = np.abs(np.sum(X-y))
     return total / len(X)
 
 
 
 def xZero(X):
-    allOne = np.ones(shape=(len(X.index),))
-    X.insert(loc=0, column = 'zeros', value=allOne)
-    return (X)
+    allOne = np.ones(shape=(X.shape[0], X.shape[1] + 1))
+    allOne[:,1:] = X
+    return allOne
 
 def linearRegressor(trainDatabase):
-    repeat = 300
-    y = np.array(trainDatabase.pop('output'))
+    repeat = 1000
+    y = np.array(trainDatabase.pop('Octane'))
 
-
-
-    trainDatabase = xZero(trainDatabase)
     X = featureScaling(np.array(trainDatabase))
-
-    initialTheta = np.zeros(shape = (len(trainDatabase.columns),))
+    X = xZero(X)
+    initialTheta = np.ones(shape = (X.shape[1],))
     #find theta cost
     costs = []
 
-    print(Cost([hypo(initialTheta,X[i]) for i in range(len(X))], y))
+    #print(Cost([hypo(initialTheta,X[i]) for i in range(len(X))], y))
 
     theta = []
 
-    untilIndex = 100
+    untilIndex = 61
 
-
+    print(X)
 
     for i in range(repeat):
         tempoTheta = initialTheta
-        for j in range(len(trainDatabase.columns)):
+        cost = 0
+
+        for j in range(X.shape[1]):
             cost = pdCost(X, y, initialTheta, j)
             tempoTheta[j] -= cost
             if j == 0:
@@ -70,24 +74,19 @@ def linearRegressor(trainDatabase):
 
         initialTheta = tempoTheta
         plt.figure()
-        plt.ylim(0,330)
+        plt.ylim(0,np.max(y) + 30)
         data = pd.DataFrame({'Prediction':[hypo(tempoTheta, X[b]) for b in range(untilIndex)], 'Result':y[:untilIndex]})
+        plt.scatter(range(untilIndex), data['Result'], label='Result')
+        plt.plot(data['Prediction'],'r' ,label='Prediction')
 
-        plt.plot(data['Prediction'], label='Prediction')
-        plt.plot(data['Result'], label='Result')
         plt.legend()
-        plt.title(f'Generation: {i}')
+        plt.title(f'Generation: {i}, Cost: {str(cost * 10000)}')
         plt.savefig(f'!frame{i}.png')
         print(f'No.{i} frame rendered')
         plt.close()
         theta.append(initialTheta)
 
-
-
-
-
-
-
+    print(np.floor(costs[0]))
 
 
 
