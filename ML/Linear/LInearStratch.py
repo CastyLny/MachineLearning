@@ -12,25 +12,26 @@ Material 3 amount
 Condition
 Octane number'''
 
-trainPD = pd.read_csv('OctaneLevel.csv')
+trainPD = pd.read_csv('train.csv')
 evalPD = pd.read_csv('eval.csv')
 
-def featureScaling(X): #deal with numpy array
-    for i, x in enumerate(X):
-        X[i] = ((x - np.average(X))/np.ptp(X))
+def featureScaling(X, average, Range): #deal with numpy array
+
+    X = ((X - average)/Range)
+    print('X'+ str(X))
     return X
 
 def hypo(theta, x):
-    return np.matmul(np.transpose(x), theta)
 
-def pdCost(X, y, theta, j, learningRate = 2):
+    result = np.matmul(np.transpose(x), theta)
+    return result
 
+def pdCost(X, y, theta, j, learningRate = 0.5):
     total = 0
     for i in range(0, len(X)):
-
-
-        total +=((hypo(theta, X[i]) - y[i]) * X[i][j])
-    return (learningRate * (total / (len(X))))
+        total +=((hypo(theta, X[i]) - y[i]) * X[i][j]) * learningRate
+        #print(total)
+    return (total/list(X.shape)[0])
 
 
 def Cost(X, y):
@@ -40,20 +41,28 @@ def Cost(X, y):
 
 
 def xZero(X):
+    #print(X)
     allOne = np.ones(shape=(X.shape[0], X.shape[1] + 1))
     allOne[:,1:] = X
+    #print(allOne)
     return allOne
 
-def linearRegressor(trainDatabase, predictionFeature, popFeature, Visualize = False):
-    repeat = 1000
+def linearRegressor(trainDatabase, predictionFeature, measure, popFeature = [], Visualize = False):
+    repeat = 1100
     y = np.array(trainDatabase.pop(predictionFeature))
     for feature in popFeature:
         trainDatabase.pop(feature)
-    X = featureScaling(np.array(trainDatabase))
-    X = xZero(X)
-    initialTheta = np.ones(shape = (X.shape[1],))
+
+    X = np.array(trainDatabase)
+    aver = np.average(X, axis=0)
+    ptp = np.max(X, axis=0) - np.min(X, axis=0)
+    X = xZero(featureScaling(X, aver, ptp))
+
+    initialTheta = np.zeros(shape = (X.shape[1],))
     #find theta cost
     costs = []
+
+    print(initialTheta)
 
     #print(Cost([hypo(initialTheta,X[i]) for i in range(len(X))], y))
 
@@ -61,7 +70,6 @@ def linearRegressor(trainDatabase, predictionFeature, popFeature, Visualize = Fa
 
     untilIndex = 61
 
-    print(X)
 
     for i in range(repeat):
         tempoTheta = initialTheta
@@ -87,10 +95,35 @@ def linearRegressor(trainDatabase, predictionFeature, popFeature, Visualize = Fa
             plt.savefig(f'!frame{i}.png')
             print(f'No.{i} frame rendered')
             plt.close()
-            theta.append(initialTheta)
-
-    print(np.floor(costs[0]))
 
 
 
-linearRegressor(trainPD, 'Octane', ['Mat1Amt','Condition'])
+    for feature in popFeature:
+            measure.pop(feature)
+    yEval = np.array(measure.pop(predictionFeature))
+    xEval = np.array(measure)
+    xEval = featureScaling(xEval, aver, ptp)
+    xEval = xZero(xEval)
+
+    print(f"Theta: {tempoTheta}")
+
+    PredictedLine = [hypo(tempoTheta, xEval[b]) for b in range(list(xEval.shape)[0])]
+
+    Accuracy = Cost(PredictedLine,yEval)
+    plt.figure()
+    plt.scatter(range(len(yEval)), yEval, label="Evaluated data")
+    plt.plot(PredictedLine, 'r', label = "Evaluated line")
+    plt.legend()
+    if Visualize:
+        for i in range(repeat, repeat + 50):
+            plt.savefig(f'!frame{i}.png')
+    plt.show()
+
+
+    print(Accuracy)
+
+
+
+
+
+linearRegressor(trainPD, 'output', evalPD, Visualize=True)
